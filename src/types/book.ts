@@ -8,6 +8,8 @@ export interface Book {
   genre: string[];
   status: 'reading' | 'completed' | 'to-read';
   rating?: number;
+  priority?: 'low' | 'medium' | 'high';
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }

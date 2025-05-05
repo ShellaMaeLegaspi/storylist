@@ -16,7 +16,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Trash, ArrowLeft } from 'lucide-react';
+import { Edit, Trash, ArrowLeft, Calendar, Clock, FileText } from 'lucide-react';
+
+const getPriorityColor = (priority?: string) => {
+  switch (priority) {
+    case 'high': return 'bg-red-500/20 text-red-300 border-red-500/30';
+    case 'medium': return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+    case 'low': return 'bg-green-500/20 text-green-300 border-green-500/30';
+    default: return '';
+  }
+};
 
 const BookDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -92,6 +101,15 @@ const BookDetailPage = () => {
               {book.status.replace('-', ' ')}
             </Badge>
             
+            {book.priority && (
+              <Badge 
+                variant="outline" 
+                className={getPriorityColor(book.priority)}
+              >
+                Priority: {book.priority}
+              </Badge>
+            )}
+            
             {book.rating && (
               <Badge variant="outline" className="bg-amber-500/20 text-amber-300 border-amber-500/30">
                 Rating: {book.rating}/5
@@ -108,10 +126,28 @@ const BookDetailPage = () => {
           <div className="prose prose-invert max-w-none">
             <p>{book.description}</p>
           </div>
+
+          {/* Notes section */}
+          {book.notes && (
+            <div className="mt-6 p-4 border border-border rounded-lg bg-card/50">
+              <div className="flex items-center gap-2 mb-2 text-primary">
+                <FileText className="h-4 w-4" />
+                <h3 className="font-medium">Notes</h3>
+              </div>
+              <p className="text-muted-foreground">{book.notes}</p>
+            </div>
+          )}
           
-          <div className="pt-4 text-sm text-muted-foreground">
-            <p>Added: {formatDate(book.createdAt)}</p>
-            <p>Last updated: {formatDate(book.updatedAt)}</p>
+          {/* Metadata */}
+          <div className="pt-4 text-sm text-muted-foreground space-y-1">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <p>Added: {formatDate(book.createdAt)}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <p>Last updated: {formatDate(book.updatedAt)}</p>
+            </div>
           </div>
           
           {/* Action buttons */}

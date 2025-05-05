@@ -12,12 +12,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
+  Search, 
+  LayoutGrid, 
+  List, 
+  Edit,
+  Trash, 
+  Eye 
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { formatDate, getStatusColor } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 const BooksPage = () => {
-  const { books } = useBooks();
+  const { books, deleteBook } = useBooks();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filteredBooks, setFilteredBooks] = useState<Book[]>(books);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   
   const query = searchParams.get('query') || '';
   const status = searchParams.get('status') || 'all';
@@ -88,9 +108,36 @@ const BooksPage = () => {
     setSearchParams(newParams);
   };
 
+  const handleDeleteBook = (id: string) => {
+    if (confirm('Are you sure you want to delete this book?')) {
+      deleteBook(id);
+    }
+  };
+
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Your Library</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Book Management</h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('grid')}
+          >
+            <LayoutGrid className="h-5 w-5" />
+          </Button>
+          <Button
+            variant={viewMode === 'table' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('table')}
+          >
+            <List className="h-5 w-5" />
+          </Button>
+          <Button asChild className="ml-2">
+            <Link to="/books/new">Add New Book</Link>
+          </Button>
+        </div>
+      </div>
       
       {/* Search and Filter */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -141,11 +188,88 @@ const BooksPage = () => {
         </p>
       </div>
       
-      {/* Books grid */}
-      <BookGrid 
-        books={filteredBooks} 
-        emptyMessage="No books found matching your filters."
-      />
+      {/* Books display */}
+      {viewMode === 'grid' ? (
+        <BookGrid 
+          books={filteredBooks} 
+          emptyMessage="No books found matching your filters."
+        />
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Author</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Genres</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredBooks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No books found matching your filters.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredBooks.map((book) => (
+                  <TableRow key={book.id}>
+                    <TableCell className="font-medium">{book.title}</TableCell>
+                    <TableCell>{book.author}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={getStatusColor(book.status)}
+                      >
+                        {book.status.replace('-', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {book.genre.slice(0, 2).map(g => (
+                          <Badge key={g} variant="secondary" className="text-xs">
+                            {g}
+                          </Badge>
+                        ))}
+                        {book.genre.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{book.genre.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatDate(book.updatedAt)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button asChild size="icon" variant="ghost">
+                          <Link to={`/books/${book.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button asChild size="icon" variant="ghost">
+                          <Link to={`/books/${book.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => handleDeleteBook(book.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 };

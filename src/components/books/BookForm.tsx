@@ -30,6 +30,8 @@ const formSchema = z.object({
   coverUrl: z.string().url('Please enter a valid URL'),
   genre: z.array(z.string()).min(1, 'Please select at least one genre'),
   status: z.enum(['reading', 'completed', 'to-read']),
+  priority: z.enum(['low', 'medium', 'high']).optional(),
+  notes: z.string().optional(),
   rating: z.number().optional(),
 });
 
@@ -60,6 +62,8 @@ const BookForm = ({
       coverUrl: '',
       genre: [],
       status: 'to-read',
+      priority: 'medium',
+      notes: '',
     },
   });
 
@@ -67,36 +71,40 @@ const BookForm = ({
     onSubmit(data);
   };
 
+  const currentStatus = form.watch('status');
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Book Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter book title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid gap-6 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Book Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter book title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="author"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Author</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter author name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="author"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Author</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter author name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
@@ -130,27 +138,97 @@ const BookForm = ({
           )}
         />
 
+        <div className="grid gap-6 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Reading Status</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="to-read">To Read</SelectItem>
+                    <SelectItem value="reading">Currently Reading</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="priority"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Priority</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value || 'medium'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {currentStatus === 'completed' && (
+          <FormField
+            control={form.control}
+            name="rating"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rating (1-5)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min={1} 
+                    max={5} 
+                    step={1}
+                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
         <FormField
           control={form.control}
-          name="status"
+          name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Reading Status</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="to-read">To Read</SelectItem>
-                  <SelectItem value="reading">Currently Reading</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Add any additional notes or thoughts about this book" 
+                  className="min-h-20" 
+                  {...field} 
+                  value={field.value || ''}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -190,29 +268,6 @@ const BookForm = ({
             </p>
           )}
         </div>
-
-        {form.getValues('status') === 'completed' && (
-          <FormField
-            control={form.control}
-            name="rating"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rating (1-5)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min={1} 
-                    max={5} 
-                    step={1}
-                    onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    value={field.value || ''}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : initialData ? 'Update Book' : 'Add Book'}
