@@ -6,9 +6,7 @@ import Footer from './Footer';
 import { 
   BookOpen, 
   Library, 
-  PlusCircle, 
-  BarChart2, 
-  Settings 
+  PlusCircle 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -20,8 +18,6 @@ const Layout = () => {
   const navItems = [
     { path: '/books', label: 'Library', icon: Library },
     { path: '/books/new', label: 'Add Book', icon: PlusCircle },
-    { path: '/stats', label: 'Statistics', icon: BarChart2 },
-    { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   const isActive = (path: string) => {
